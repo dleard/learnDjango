@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, render
 # The get_object_or_404() function takes a Django model as its first argument and an arbitrary number of keyword arguments, which it passes to the get() function of the model’s manager. It raises Http404 if the object doesn’t exist.
 from django.urls import reverse
 from django.views import generic
+from django.utils import timezone
 
 from .models import Choice, Question
 
@@ -16,11 +17,14 @@ class IndexView(generic.ListView):
 
   def get_queryset(self):
     """Return last 5 published questions"""
-    return Question.objects.order_by('-pub_date')[:5]
+    return Question.objects.filter(pub_date__lte=timezone.now()).order_by('-pub_date')[:5]
 
 class DetailView(generic.DetailView):
   model=Question
   template_name = 'polls/detail.html'
+  def get_queryset(self):
+    """Exclude any non-published questions"""
+    return Question.objects.filter(pub_date__lte=timezone.now())
 
 class ResultsView(generic.DetailView):
   model = Question
